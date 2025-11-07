@@ -122,13 +122,16 @@ Set via `.env` (see `.env.example`):
 2. **Create Render Web Service**:
    - Go to [Render Dashboard](https://dashboard.render.com)
    - Click "New +" → "Web Service"
-   - Connect your GitHub repository
+   - Connect your GitHub repository (`UWANDEME-AI`)
    - Use these settings:
      - **Name**: `trading-signal-provider` (or your choice)
      - **Environment**: `Python 3`
+     - **Root Directory**: `trading-signal-provider` ⚠️ **IMPORTANT**: Set this in Advanced settings
      - **Build Command**: `pip install -r backend/requirements.txt`
      - **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
      - **Plan**: Free tier works, but consider paid for better performance
+   
+   **Note**: If you're using `render.yaml`, the rootDir is already configured. If setting up manually, make sure to set the Root Directory to `trading-signal-provider` in the Advanced settings section.
 
 3. **Add Environment Variables** in Render Dashboard → Environment tab:
    ```

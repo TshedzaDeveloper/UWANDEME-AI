@@ -2,6 +2,7 @@ services:
   - type: web
     name: trading-signal-provider
     env: python
+    rootDir: trading-signal-provider
     buildCommand: pip install -r backend/requirements.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
