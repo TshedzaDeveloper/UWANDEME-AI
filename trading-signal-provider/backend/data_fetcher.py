@@ -13,7 +13,7 @@ async def fetch_candles_tradingview(symbol: str, timeframe: str = "1") -> pd.Dat
     """
     # TODO: Replace this with vendor-specific request code.
     # Below is a mock sample to let the system run offline for tests:
-    now = pd.Timestamp.utcnow().floor('T')
+    now = pd.Timestamp.now(tz='UTC').floor('T')
     periods = 200
     idx = pd.date_range(end=now, periods=periods, freq='T')  # minute candles
     price = 1.1000 + (pd.Series(range(periods)).diff().fillna(0).cumsum() * 0.0001).values

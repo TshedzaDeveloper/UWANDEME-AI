@@ -6,5 +6,6 @@ numpy
 python-dotenv
 aiosqlite
 pydantic
+pydantic-settings
 
 

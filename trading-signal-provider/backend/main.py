@@ -53,7 +53,14 @@ async def read_signals(limit: int = 50):
 # Helper: map UTC now into session name
 def detect_session(ts: pd.Timestamp) -> str:
     # Work in UTC: London roughly 07:00-16:00 UTC (winter/summer shifts ignored)
-    h = ts.tz_convert('UTC').hour if hasattr(ts, 'tz') else ts.hour
+    try:
+        if hasattr(ts, 'tz') and ts.tz is not None:
+            h = ts.tz_convert('UTC').hour
+        else:
+            h = pd.to_datetime(ts).tz_localize('UTC').hour
+    except Exception:
+        h = pd.Timestamp.now(tz='UTC').hour
+    
     if 7 <= h < 16:
         return "LONDON"
     if 12 <= h < 21:

@@ -115,15 +115,39 @@ Set via `.env` (see `.env.example`):
 
 ### Deploy to Render
 
-Minimal steps:
-1) Push this repo to GitHub.
-2) Create a new Render Web Service:
-   - Build Command: `pip install -r backend/requirements.txt`
-   - Start Command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-3) Add Environment Variables (from `.env.example`).
-4) Set instance to have enough memory for pandas if needed.
+#### Steps:
 
-Optional: add a `render.yaml` later for IaC.
+1. **Push to GitHub**: Push this repository to GitHub (public or private).
+
+2. **Create Render Web Service**:
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Use these settings:
+     - **Name**: `trading-signal-provider` (or your choice)
+     - **Environment**: `Python 3`
+     - **Build Command**: `pip install -r backend/requirements.txt`
+     - **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+     - **Plan**: Free tier works, but consider paid for better performance
+
+3. **Add Environment Variables** in Render Dashboard → Environment tab:
+   ```
+   TRADINGVIEW_API_URL=https://api.tradingview.example
+   TRADINGVIEW_API_KEY=your_actual_api_key_here
+   FOREX_CALENDAR_API_URL=https://api.forexcalendar.example
+   FOREX_CALENDAR_API_KEY=your_actual_api_key_here
+   SYMBOLS=EURUSD,GBPUSD,USDJPY
+   POLL_INTERVAL_SECONDS=60
+   NEWS_AVOID_MINUTES=15
+   DB_PATH=signals.db
+   ENV=production
+   ```
+
+4. **Deploy**: Click "Create Web Service" and wait for deployment.
+
+5. **Access**: Your API will be available at `https://your-service-name.onrender.com/signals`
+
+**Note**: The SQLite database (`signals.db`) is ephemeral on Render free tier. For production, consider using a persistent database (PostgreSQL) or external storage.
 
 ### Test Plan
 

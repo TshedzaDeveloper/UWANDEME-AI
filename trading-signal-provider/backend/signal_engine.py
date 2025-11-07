@@ -41,20 +41,35 @@ def generate_signals_from_candles(df: pd.DataFrame, symbol: str, session: str, n
 
     # News filter: if any high-impact news within news_avoid_minutes of idx, skip
     from datetime import timedelta
-    now_ts = idx.tz_convert('UTC') if hasattr(idx, 'tz') else idx
+    try:
+        if hasattr(idx, 'tz') and idx.tz is not None:
+            now_ts = idx.tz_convert('UTC')
+        else:
+            now_ts = pd.to_datetime(idx).tz_localize('UTC') if pd.notna(idx) else pd.Timestamp.now(tz='UTC')
+    except Exception:
+        now_ts = pd.Timestamp.now(tz='UTC')
+    
     avoid = False
     for ev in news_events:
         # ev should have keys: 'time' (ISO UTC string), 'impact' (e.g., 'high')
         try:
-            ev_time = pd.to_datetime(ev.get('time')).tz_convert('UTC') if pd.notna(ev.get('time')) else None
+            if ev.get('time'):
+                ev_time = pd.to_datetime(ev.get('time'))
+                if ev_time.tz is None:
+                    ev_time = ev_time.tz_localize('UTC')
+                else:
+                    ev_time = ev_time.tz_convert('UTC')
+            else:
+                continue
         except Exception:
-            ev_time = pd.to_datetime(ev.get('time'))
-        if ev_time is None:
             continue
-        diff = abs((now_ts - ev_time).total_seconds())/60.0
-        if ev.get('impact') and ev.get('impact').lower() == 'high' and diff <= news_avoid_minutes:
-            avoid = True
-            break
+        try:
+            diff = abs((now_ts - ev_time).total_seconds())/60.0
+            if ev.get('impact') and ev.get('impact').lower() == 'high' and diff <= news_avoid_minutes:
+                avoid = True
+                break
+        except Exception:
+            continue
 
     if avoid:
         return signals

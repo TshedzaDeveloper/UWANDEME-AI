@@ -1,0 +1,84 @@
+===========================================
+RENDER ENVIRONMENT VARIABLES - COPY & PASTE
+===========================================
+
+Copy these into your Render dashboard (Settings → Environment Variables):
+
+-------------------------------------------
+Variable Name: TRADINGVIEW_API_URL
+Value: https://api.tradingview.example
+Description: TradingView API endpoint URL
+Required: No (uses mock data if empty)
+
+-------------------------------------------
+Variable Name: TRADINGVIEW_API_KEY
+Value: (your actual API key)
+Description: TradingView API authentication key
+Required: No (uses mock data if empty)
+
+-------------------------------------------
+Variable Name: FOREX_CALENDAR_API_URL
+Value: https://api.forexcalendar.example
+Description: Forex calendar API endpoint URL
+Required: No (uses mock data if empty)
+
+-------------------------------------------
+Variable Name: FOREX_CALENDAR_API_KEY
+Value: (your actual API key)
+Description: Forex calendar API authentication key
+Required: No (uses mock data if empty)
+
+-------------------------------------------
+Variable Name: SYMBOLS
+Value: EURUSD,GBPUSD,USDJPY
+Description: Comma-separated currency pairs to monitor
+Required: Yes (has default)
+
+-------------------------------------------
+Variable Name: POLL_INTERVAL_SECONDS
+Value: 60
+Description: How often to poll for new data (seconds)
+Required: Yes (has default)
+
+-------------------------------------------
+Variable Name: NEWS_AVOID_MINUTES
+Value: 15
+Description: Avoid trading X minutes before/after high-impact news
+Required: Yes (has default)
+
+-------------------------------------------
+Variable Name: DB_PATH
+Value: signals.db
+Description: SQLite database file path
+Required: Yes (has default)
+
+-------------------------------------------
+Variable Name: ENV
+Value: production
+Description: Environment mode (development or production)
+Required: Yes (has default)
+
+===========================================
+QUICK COPY (Bulk Edit Format):
+===========================================
+
+TRADINGVIEW_API_URL=https://api.tradingview.example
+TRADINGVIEW_API_KEY=
+FOREX_CALENDAR_API_URL=https://api.forexcalendar.example
+FOREX_CALENDAR_API_KEY=
+SYMBOLS=EURUSD,GBPUSD,USDJPY
+POLL_INTERVAL_SECONDS=60
+NEWS_AVOID_MINUTES=15
+DB_PATH=signals.db
+ENV=production
+
+===========================================
+RENDER SERVICE SETTINGS:
+===========================================
+
+Build Command: pip install -r backend/requirements.txt
+Start Command: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+Python Version: 3.11 or 3.12
+
+===========================================
+
