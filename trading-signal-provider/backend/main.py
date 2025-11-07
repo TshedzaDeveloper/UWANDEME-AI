@@ -45,6 +45,24 @@ async def shutdown_event():
             pass
 
 
+@app.get("/")
+async def root():
+    return {
+        "message": "Trading Signal Provider API",
+        "version": "1.0.0",
+        "endpoints": {
+            "signals": "/signals",
+            "docs": "/docs",
+            "health": "/health"
+        }
+    }
+
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "trading-signal-provider"}
+
+
 @app.get("/signals")
 async def read_signals(limit: int = 50):
     return await get_recent_signals(limit)
@@ -54,11 +72,22 @@ async def read_signals(limit: int = 50):
 def detect_session(ts: pd.Timestamp) -> str:
     # Work in UTC: London roughly 07:00-16:00 UTC (winter/summer shifts ignored)
     try:
-        if hasattr(ts, 'tz') and ts.tz is not None:
-            h = ts.tz_convert('UTC').hour
+        if isinstance(ts, pd.Timestamp):
+            if ts.tz is not None:
+                # Already timezone-aware, convert to UTC
+                h = ts.tz_convert('UTC').hour
+            else:
+                # Naive timestamp, localize to UTC
+                h = ts.tz_localize('UTC').hour
         else:
-            h = pd.to_datetime(ts).tz_localize('UTC').hour
-    except Exception:
+            # Convert to Timestamp first
+            ts_converted = pd.to_datetime(ts)
+            if ts_converted.tz is not None:
+                h = ts_converted.tz_convert('UTC').hour
+            else:
+                h = ts_converted.tz_localize('UTC').hour
+    except Exception as e:
+        logger.warning(f"Error detecting session for {ts}: {e}, using current time")
         h = pd.Timestamp.now(tz='UTC').hour
     
     if 7 <= h < 16:
@@ -70,20 +99,40 @@ def detect_session(ts: pd.Timestamp) -> str:
 
 async def analyze_symbol(symbol: str):
     try:
+        logger.debug(f"Analyzing symbol: {symbol}")
         df = await fetch_candles_tradingview(symbol)
         if not isinstance(df, pd.DataFrame) or df.empty:
             logger.warning(f"No candles for {symbol}")
             return []
+        
+        # Ensure DataFrame index is timezone-aware and in UTC
+        if df.index.tz is None:
+            logger.debug(f"Localizing index to UTC for {symbol}")
+            df.index = df.index.tz_localize('UTC')
+        else:
+            # Already timezone-aware, convert to UTC if needed
+            try:
+                df.index = df.index.tz_convert('UTC')
+                logger.debug(f"Converted index to UTC for {symbol}")
+            except Exception as e:
+                logger.warning(f"Could not convert timezone for {symbol}: {e}, assuming UTC")
+        
         news = await fetch_news_calendar()
         latest_idx = df.index[-1]
         session = detect_session(latest_idx)
         signals = generate_signals_from_candles(df, symbol, session, news, settings.NEWS_AVOID_MINUTES)
-        for s in signals:
-            await save_signal(s)
-            logger.info(f"Saved signal: {s}")
+        
+        if signals:
+            logger.info(f"Generated {len(signals)} signal(s) for {symbol}")
+            for s in signals:
+                await save_signal(s)
+                logger.info(f"Saved signal: {s}")
+        else:
+            logger.debug(f"No signals generated for {symbol}")
+        
         return signals
     except Exception as e:
-        logger.exception(f"Error analyzing {symbol}: {e}")
+        logger.error(f"Error analyzing {symbol}: {e}", exc_info=True)
         return []
 
 

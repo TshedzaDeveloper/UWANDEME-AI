@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timezone
 from typing import Dict, Any
+import logging
+
+logger = logging.getLogger("trading-signal-provider")
 
 
 def ema(series: pd.Series, span: int) -> pd.Series:
@@ -42,11 +45,23 @@ def generate_signals_from_candles(df: pd.DataFrame, symbol: str, session: str, n
     # News filter: if any high-impact news within news_avoid_minutes of idx, skip
     from datetime import timedelta
     try:
-        if hasattr(idx, 'tz') and idx.tz is not None:
-            now_ts = idx.tz_convert('UTC')
+        # Handle timezone-aware and naive timestamps
+        if isinstance(idx, pd.Timestamp):
+            if idx.tz is not None:
+                # Already timezone-aware, just convert to UTC
+                now_ts = idx.tz_convert('UTC')
+            else:
+                # Naive timestamp, localize to UTC
+                now_ts = idx.tz_localize('UTC')
         else:
-            now_ts = pd.to_datetime(idx).tz_localize('UTC') if pd.notna(idx) else pd.Timestamp.now(tz='UTC')
-    except Exception:
+            # Convert to Timestamp and handle timezone
+            idx_ts = pd.to_datetime(idx)
+            if idx_ts.tz is not None:
+                now_ts = idx_ts.tz_convert('UTC')
+            else:
+                now_ts = idx_ts.tz_localize('UTC')
+    except Exception as e:
+        logger.warning(f"Error processing timestamp {idx}: {e}, using current time")
         now_ts = pd.Timestamp.now(tz='UTC')
     
     avoid = False

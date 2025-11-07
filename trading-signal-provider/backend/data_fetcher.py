@@ -15,7 +15,7 @@ async def fetch_candles_tradingview(symbol: str, timeframe: str = "1") -> pd.Dat
     # Below is a mock sample to let the system run offline for tests:
     now = pd.Timestamp.now(tz='UTC').floor('T')
     periods = 200
-    idx = pd.date_range(end=now, periods=periods, freq='T')  # minute candles
+    idx = pd.date_range(end=now, periods=periods, freq='T', tz='UTC')  # minute candles with UTC timezone
     price = 1.1000 + (pd.Series(range(periods)).diff().fillna(0).cumsum() * 0.0001).values
     df = pd.DataFrame({
         "open": price,
@@ -24,7 +24,12 @@ async def fetch_candles_tradingview(symbol: str, timeframe: str = "1") -> pd.Dat
         "close": price,
         "volume": 1000
     }, index=idx)
-    df.index = df.index.tz_localize('UTC')
+    # Index is already timezone-aware, no need to localize
+    # Ensure it's UTC
+    if df.index.tz is None:
+        df.index = df.index.tz_localize('UTC')
+    elif df.index.tz != pd.Timestamp.now(tz='UTC').tz:
+        df.index = df.index.tz_convert('UTC')
     return df
 
 
