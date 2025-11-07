@@ -39,10 +39,33 @@ async def fetch_news_calendar(since_minutes: int = 60) -> List[Dict]:
     [{'time': '2025-11-06T12:30:00Z', 'pair': 'USD', 'impact': 'high', 'title': 'NFP', ...}, ...]
     """
     # TODO: Hook to real Forex Calendar provider.
-    # Mock example:
+    # Mock example with more realistic data:
+    from datetime import timedelta
     now = datetime.utcnow()
-    return [
-        {"time": (now.isoformat() + "Z"), "pair": "USD", "impact": "low", "title": "mock event"}
-    ]
+    events = []
+    
+    # Generate some mock events for the next 24 hours
+    for i in range(5):
+        event_time = now + timedelta(hours=i*4)
+        impacts = ["low", "medium", "high"]
+        currencies = ["USD", "EUR", "GBP", "JPY", "AUD"]
+        events_list = [
+            {"title": "Non-Farm Payrolls", "currency": "USD"},
+            {"title": "CPI Data", "currency": "EUR"},
+            {"title": "Interest Rate Decision", "currency": "GBP"},
+            {"title": "GDP Release", "currency": "JPY"},
+            {"title": "Employment Data", "currency": "AUD"},
+        ]
+        event = events_list[i % len(events_list)]
+        events.append({
+            "time": event_time.isoformat() + "Z",
+            "pair": event["currency"],
+            "impact": impacts[i % len(impacts)],
+            "title": event["title"],
+            "forecast": None,
+            "previous": None
+        })
+    
+    return events
 
 

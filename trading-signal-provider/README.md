@@ -21,6 +21,13 @@ trading-signal-provider/
 │  ├─ db.py
 │  ├─ config.py
 │  └─ requirements.txt
+├─ frontend/
+│  ├─ src/
+│  │  ├─ components/
+│  │  ├─ services/
+│  │  └─ App.tsx
+│  ├─ package.json
+│  └─ vite.config.ts
 ├─ .env.example
 └─ README.md
 ```
@@ -72,7 +79,17 @@ cd backend
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Open `http://localhost:8000/signals` to fetch recent stored signals.
+5) Run Frontend Dashboard (in a new terminal)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000` to view the dashboard.
+
+API will be available at `http://localhost:8000/signals`
 
 Notes:
 - `backend/data_fetcher.py` contains mock data so the app runs offline. Replace TODOs with real vendor requests.

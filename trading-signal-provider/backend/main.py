@@ -68,6 +68,43 @@ async def read_signals(limit: int = 50):
     return await get_recent_signals(limit)
 
 
+@app.get("/api/calendar")
+async def get_calendar():
+    """Get forex calendar events"""
+    events = await fetch_news_calendar(since_minutes=1440)  # 24 hours
+    return {"events": events}
+
+
+@app.get("/api/symbols")
+async def get_symbols():
+    """Get list of symbols being analyzed"""
+    symbols = [s.strip() for s in settings.SYMBOLS.split(",") if s.strip()]
+    return {"symbols": symbols}
+
+
+@app.get("/api/stats")
+async def get_stats():
+    """Get trading statistics"""
+    signals = await get_recent_signals(limit=1000)
+    if not signals:
+        return {
+            "total_signals": 0,
+            "buy_signals": 0,
+            "sell_signals": 0,
+            "symbols_analyzed": len([s.strip() for s in settings.SYMBOLS.split(",") if s.strip()])
+        }
+    
+    buy_count = sum(1 for s in signals if s.get("side") == "BUY")
+    sell_count = sum(1 for s in signals if s.get("side") == "SELL")
+    
+    return {
+        "total_signals": len(signals),
+        "buy_signals": buy_count,
+        "sell_signals": sell_count,
+        "symbols_analyzed": len([s.strip() for s in settings.SYMBOLS.split(",") if s.strip()])
+    }
+
+
 # Helper: map UTC now into session name
 def detect_session(ts: pd.Timestamp) -> str:
     # Work in UTC: London roughly 07:00-16:00 UTC (winter/summer shifts ignored)
